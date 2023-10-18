@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  random-number:
+    build:
+      context: homework-2-service-1
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+
+  feign-client:
+    build:
+      context: homework-2-service-2
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
