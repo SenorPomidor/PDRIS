@@ -1,0 +1,45 @@
+- hosts: localhost
+  tasks:
+    - name: Выгрузка jar файла service-1
+      command: docker cp app_application_1:/service-1.jar ./service-1.jar
+
+    - name: Выгрузка jar файла service-2
+      command: docker cp app_application_1:/service-1.jar ./service-2.jar
+
+    - name: Запуск временного контейнера для копирования файлов
+      docker_container:
+        name: temp-container-for-copy
+        image: alpine
+        volumes:
+          - jars-volume:/app
+        command: sleep 3600
+        detach: yes
+
+    - name: Копирование service-1.jar в volume
+      command: docker cp ./service-1.jar temp-container-for-copy:/app/service-1.jar
+
+    - name: Копирование service-2.jar в volume
+      command: docker cp ./service-2.jar temp-container-for-copy:/app/service-2.jar
+
+    - name: Остановка временного контейнера
+      docker_container:
+        name: temp-container-for-copy
+        state: absent
+
+    - name: Запуск первого Docker контейнера
+      docker_container:
+        name: java-app-service-1
+        image: openjdk:18-alpine
+        command: java -jar /app/service-1.jar
+        volumes:
+          - jars-volume:/app
+        detach: yes
+
+    - name: Запуск второго Docker контейнера
+      docker_container:
+        name: java-app-service-2
+        image: openjdk:18-alpine
+        command: java -jar /app/service-2.jar
+        volumes:
+          - jars-volume:/app
+        detach: yes
